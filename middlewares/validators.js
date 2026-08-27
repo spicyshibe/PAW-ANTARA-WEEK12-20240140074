@@ -60,6 +60,52 @@ const sanitasiDemoRules = [
 ];
 
 /**
+ * Helper untuk mendeteksi payload XSS / SQL Injection berbahaya
+ */
+function detectPayload(value, fieldName) {
+  if (!value) return true;
+  // Deteksi XSS Script / HTML Tag / Event Handler / Dangerous Functions
+  const xssPattern = /<[^>]+>|javascript:|on\w+\s*=|alert\s*\(|prompt\s*\(|eval\s*\(/i;
+  // Deteksi SQL Injection Pattern
+  const sqliPattern = /('|--|;|\/\*|\*\/|UNION\s+SELECT|' OR '|" OR "|' OR 1=1|" OR 1=1|;\s*(DROP|DELETE|UPDATE|INSERT|SELECT))/i;
+
+  if (xssPattern.test(value) || sqliPattern.test(value)) {
+    throw new Error(`Input ditolak! Terdeteksi payload berbahaya (Script/HTML/SQLi) pada field ${fieldName}.`);
+  }
+  return true;
+}
+
+/**
+ * 🛡️ DITANGANI DI SINI - Validasi & Sanitasi Server-Side untuk Implementasi Mandiri (Form Feedback/Komentar)
+ */
+const feedbackValidationRules = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Nama wajib diisi')
+    .isLength({ min: 3, max: 50 })
+    .withMessage('Nama harus antara 3 - 50 karakter')
+    .custom((val) => detectPayload(val, 'Nama'))
+    .escape(),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email wajib diisi')
+    .custom((val) => detectPayload(val, 'Email'))
+    .isEmail()
+    .withMessage('Format email tidak valid')
+    .normalizeEmail(),
+  body('message')
+    .trim()
+    .notEmpty()
+    .withMessage('Pesan/Komentar wajib diisi')
+    .isLength({ min: 5, max: 500 })
+    .withMessage('Pesan/Komentar harus antara 5 - 500 karakter')
+    .custom((val) => detectPayload(val, 'Pesan/Komentar'))
+    .escape(),
+];
+
+/**
  * Middleware buat ngecek hasil validasi. Kalo ada error, dikumpulin
  * jadi array pesan yang gampang ditampilin ulang ke form.
  */
@@ -77,5 +123,7 @@ module.exports = {
   loginValidationRules,
   searchValidationRules,
   sanitasiDemoRules,
+  feedbackValidationRules,
   handleValidationErrors,
 };
+

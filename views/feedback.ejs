@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Implementasi Mandiri — Form Komentar / Feedback</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen pb-12">
+  <header class="bg-white border-b border-gray-200 py-4 px-6 mb-6 flex items-center justify-between shadow-sm">
+    <div>
+      <h1 class="text-xl font-bold text-slate-800">Bagian 2 — Implementasi Mandiri (Form Feedback/Komentar Aman)</h1>
+      <p class="text-sm text-gray-500">
+        <a href="/demo" class="text-blue-600 hover:underline">&larr; Kembali ke Hub Demo</a> | 
+        <a href="/search" class="text-blue-600 hover:underline">Halaman Search Produk</a>
+      </p>
+    </div>
+    <% if (username) { %>
+      <form method="POST" action="/logout">
+        <button class="text-sm text-red-600 font-medium hover:underline">Logout (<%= username %>)</button>
+      </form>
+    <% } %>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4">
+    <!-- Header Section -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-6">
+      <h2 class="text-emerald-900 font-bold text-base mb-1">🛡️ Fitur Keamanan yang Diterapkan di Form Ini:</h2>
+      <ul class="text-sm text-emerald-800 space-y-1 list-disc list-inside">
+        <li><strong>Validasi Server-Side:</strong> Input di-cek oleh <code>express-validator</code> di server (Bukan cuma <code>required</code> di HTML).</li>
+        <li><strong>Sanitasi Input:</strong> String di-<code>trim()</code>, <code>escape()</code>, dan email di-<code>normalizeEmail()</code> sebelum diproses.</li>
+        <li><strong>Parameterized Query (ORM):</strong> Menyimpan & mengambil data menggunakan Sequelize ORM.</li>
+        <li><strong>Escaped HTML Output:</strong> Render data menggunakan sintaks EJS <code>&lt;%= %&gt;</code> sehingga aman dari XSS.</li>
+      </ul>
+    </div>
+
+    <!-- Alert Success -->
+    <% if (successMessage) { %>
+      <div class="bg-green-100 border border-green-400 text-green-800 text-sm rounded-lg p-4 mb-6">
+        ✅ <strong>Sukses!</strong> <%= successMessage %>
+      </div>
+    <% } %>
+
+    <!-- Alert Error Validasi Server-side (Syarat 1) -->
+    <% if (errors && errors.length > 0) { %>
+      <!-- Native Browser Popup Alert -->
+      <script>
+        window.addEventListener('DOMContentLoaded', () => {
+          alert("🚫 INPUT DITOLAK!\n\n<%= errors.map(e => '• ' + e).join('\\n') %>");
+        });
+      </script>
+
+      <!-- Popup Modal Overlay UI -->
+      <div id="payloadAlertModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border-2 border-red-500">
+          <div class="flex items-center space-x-3 text-red-600 mb-3">
+            <svg class="w-8 h-8 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h3 class="text-lg font-bold text-red-700">Input / Payload Ditolak!</h3>
+          </div>
+          <p class="text-sm text-gray-600 mb-3">Server menolak input yang dimasukkan karena terdeteksi payload berbahaya atau data invalid:</p>
+          <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-800 space-y-1 mb-5">
+            <% errors.forEach(function(err) { %>
+              <div class="flex items-start">
+                <span class="mr-1.5 font-bold">•</span>
+                <span><%= err %></span>
+              </div>
+            <% }) %>
+          </div>
+          <button onclick="document.getElementById('payloadAlertModal').remove()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow">
+            Tutup Alert Popup
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-red-50 border border-red-300 text-red-700 text-sm rounded-lg p-4 mb-6">
+        <strong class="block mb-2">⚠️ Data / Payload Ditolak oleh Server:</strong>
+        <ul class="list-disc list-inside space-y-1">
+          <% errors.forEach(function(err) { %>
+            <li><%= err %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <!-- Perbandingan Before vs After Sanitasi (Syarat 2) -->
+    <% if (sanitizationBeforeAfter) { %>
+      <div class="bg-white border border-blue-200 rounded-xl p-5 shadow-sm mb-6">
+        <h3 class="font-bold text-blue-900 text-sm mb-3">🧹 Bukti Sanitasi Input (Before vs After):</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="bg-red-50 p-3 rounded border border-red-200">
+            <span class="font-bold text-red-700 block mb-1">SEBELUM Sanitasi (Raw Input):</span>
+            <p><strong>Nama:</strong> "<%= sanitizationBeforeAfter.before.name %>"</p>
+            <p><strong>Email:</strong> "<%= sanitizationBeforeAfter.before.email %>"</p>
+            <p><strong>Pesan:</strong> "<%= sanitizationBeforeAfter.before.message %>"</p>
+          </div>
+          <div class="bg-green-50 p-3 rounded border border-green-200">
+            <span class="font-bold text-green-700 block mb-1">SESUDAH Sanitasi (.trim, .escape, .normalizeEmail):</span>
+            <p><strong>Nama:</strong> "<%= sanitizationBeforeAfter.after.name %>"</p>
+            <p><strong>Email:</strong> "<%= sanitizationBeforeAfter.after.email %>"</p>
+            <p><strong>Pesan:</strong> "<%= sanitizationBeforeAfter.after.message %>"</p>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Form Input Komentar -->
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Kirim Komentar / Feedback</h2>
+      <form id="feedbackForm" method="POST" action="/feedback" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+          <input
+            type="text"
+            name="name"
+            value="<%= old.name || '' %>"
+            placeholder="Masukkan nama Anda (min. 3 karakter)"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="text"
+            name="email"
+            value="<%= old.email || '' %>"
+            placeholder="contoh: user@gmail.com"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Komentar / Pesan (Coba payload XSS: &lt;script&gt;alert(1)&lt;/script&gt;)</label>
+          <textarea
+            name="message"
+            rows="3"
+            placeholder="Tulis pesan atau komentar..."
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          ><%= old.message || '' %></textarea>
+        </div>
+
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm transition-colors">
+          Kirim Feedback (Aman)
+        </button>
+      </form>
+    </div>
+
+    <!-- Script deteksi payload client-side untuk UX alert instan -->
+    <script>
+      document.getElementById('feedbackForm')?.addEventListener('submit', function(e) {
+        const name = this.querySelector('[name="name"]').value;
+        const email = this.querySelector('[name="email"]').value;
+        const message = this.querySelector('[name="message"]').value;
+
+        const xssPattern = /<[^>]+>|javascript:|on\w+\s*=|alert\s*\(|prompt\s*\(|eval\s*\(/i;
+        const sqliPattern = /('|--|;|\/\*|\*\/|UNION\s+SELECT|' OR '|" OR "|' OR 1=1|" OR 1=1|;\s*(DROP|DELETE|UPDATE|INSERT|SELECT))/i;
+
+        if (xssPattern.test(name) || xssPattern.test(email) || xssPattern.test(message) ||
+            sqliPattern.test(name) || sqliPattern.test(email) || sqliPattern.test(message)) {
+          // Tetap biarkan submit ke server agar validasi server-side juga teruji, atau beri alert langsung jika diinginkan
+          // alert("🚫 ALERT: Payload terdeteksi! Mengirim data ke server untuk pengujian validasi...");
+        }
+      });
+    </script>
+
+    <!-- Daftar Komentar (Daftar Data User - Escaped Render) -->
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Daftar Komentar Tersimpan (<%= feedbacks.length %>)</h2>
+
+      <% if (feedbacks.length === 0) { %>
+        <p class="text-sm text-gray-500 italic">Belum ada komentar tersimpan.</p>
+      <% } else { %>
+        <div class="space-y-4">
+          <% feedbacks.forEach(function(fb) { %>
+            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+              <div class="flex items-center justify-between mb-1">
+                <!-- 🛡️ EJS Escaped Render <%= %> untuk mencegah XSS -->
+                <span class="font-semibold text-gray-800 text-sm"><%= fb.name %></span>
+                <span class="text-xs text-gray-400"><%= new Date(fb.createdAt).toLocaleString('id-ID') %></span>
+              </div>
+              <p class="text-xs text-gray-500 mb-2">Email: <%= fb.email %></p>
+              <div class="bg-gray-50 border border-gray-200 rounded p-3 text-sm text-gray-700 break-all">
+                <!-- 🛡️ PERHATIKAN: Pake <%= fb.message %> BUKAN <%- fb.message %> -->
+                <%= fb.message %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

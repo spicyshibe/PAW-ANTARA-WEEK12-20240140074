@@ -67,7 +67,7 @@
         <p class="text-sm text-gray-500">Bandingin query parameterized vs string SQL nyambung manual.</p>
       </a>
 
-      <a href="/demo/xss" class="block bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow sm:col-span-2">
+      <a href="/demo/xss" class="block bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-2xl">⚡</span>
           <span class="text-xs font-semibold px-2 py-1 rounded-full <%= vulnDemoEnabled ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500' %>">
@@ -76,6 +76,15 @@
         </div>
         <h2 class="font-semibold text-gray-800 mb-1">5. XSS (Cross-Site Scripting)</h2>
         <p class="text-sm text-gray-500">Coba masukin payload <code>&lt;script&gt;</code>, liat bedanya kena vs enggak.</p>
+      </a>
+
+      <a href="/feedback" class="block bg-emerald-50 border border-emerald-300 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow sm:col-span-2">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">📝</span>
+          <span class="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-800">Bagian 2 — Implementasi Mandiri</span>
+        </div>
+        <h2 class="font-semibold text-emerald-900 mb-1">Form Komentar / Feedback Aman</h2>
+        <p class="text-sm text-emerald-700">Halaman form baru yang menerapkan Validasi Server-Side, Sanitasi Input, Escaped Output (<%= %>), dan ORM Parameterized Query.</p>
       </a>
     </div>
   </main>
